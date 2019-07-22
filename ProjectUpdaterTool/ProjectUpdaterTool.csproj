@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <Version>1.0.0</Version>
+
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>ProjectUpdater</ToolCommandName>
+  </PropertyGroup>
+
+</Project>

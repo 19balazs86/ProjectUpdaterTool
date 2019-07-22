@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "RunMe": {
+      "commandName": "Project",
+      "environmentVariables": {
+        
+      }
+    }
+  }
+}
