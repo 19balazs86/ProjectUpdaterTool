@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -12,6 +13,8 @@ namespace ProjectUpdaterTool
   {
     public static async Task Main(string[] args)
     {
+      bool isTestMode = args.Contains("-test");
+
       try
       {
         string currentDirectory = Directory.GetCurrentDirectory();
@@ -42,13 +45,16 @@ namespace ProjectUpdaterTool
 
               string withNewVersion = $"Include=\"{package.PackageName}\" Version=\"{package.VersionNew}\"";
 
-              csprojContent = regex.Replace(csprojContent, withNewVersion);
+              if (!isTestMode)
+                csprojContent = regex.Replace(csprojContent, withNewVersion);
             }
           }
 
           if (result != null)
           {
             results.Add(result);
+
+            if (isTestMode) continue;
 
             using FileStream csprojOutStream = File.Create(csprojFilePath);
 
