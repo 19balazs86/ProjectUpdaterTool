@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Text.Json.Serialization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -16,7 +16,7 @@ namespace ProjectUpdaterTool
       {
         string currentDirectory = Directory.GetCurrentDirectory();
 
-        IEnumerable<Package> packagesToUpdate = JsonSerializer.Parse<IEnumerable<Package>>(
+        IEnumerable<Package> packagesToUpdate = JsonSerializer.Deserialize<IEnumerable<Package>>(
           File.ReadAllText(Path.Combine(currentDirectory, "PackagesToUpdate.json")));
 
         string[] csprojFiles = Directory.GetFiles(currentDirectory, "*.csproj", SearchOption.AllDirectories);
@@ -67,7 +67,7 @@ namespace ProjectUpdaterTool
 
         using Stream resultsOutStream = File.Create(Path.Combine(currentDirectory, "PackagesToUpdateResult.json"));
 
-        await JsonSerializer.WriteAsync(results, resultsOutStream, new JsonSerializerOptions { WriteIndented = true });
+        await JsonSerializer.SerializeAsync(resultsOutStream, results, new JsonSerializerOptions { WriteIndented = true });
       }
       catch (Exception ex)
       {
