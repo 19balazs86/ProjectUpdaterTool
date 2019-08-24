@@ -39,7 +39,7 @@ namespace ProjectUpdaterTool
             if (regex.IsMatch(csprojContent))
             {
               if (result is null)
-                result = new Result(csprojFilePath);
+                result = new Result(csprojFilePath.Replace(currentDirectory, string.Empty));
 
               result.Packages.Add(package.PackageName);
 
