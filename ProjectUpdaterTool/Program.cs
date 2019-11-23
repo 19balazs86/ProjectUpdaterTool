@@ -50,25 +50,23 @@ namespace ProjectUpdaterTool
             }
           }
 
-          if (result != null)
-          {
-            results.Add(result);
+          if (result is null) continue;
 
-            if (isTestMode) continue;
+          results.Add(result);
 
-            using FileStream csprojOutStream = File.Create(csprojFilePath);
+          if (isTestMode) continue;
 
-            // BOM
-            csprojOutStream.WriteByte(0xEF);
-            csprojOutStream.WriteByte(0xBB);
-            csprojOutStream.WriteByte(0xBF);
+          using FileStream csprojOutStream = File.Create(csprojFilePath);
 
-            byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
+          // BOM
+          csprojOutStream.WriteByte(0xEF);
+          csprojOutStream.WriteByte(0xBB);
+          csprojOutStream.WriteByte(0xBF);
 
-            csprojOutStream.Write(bytes, 0, bytes.Length);
+          byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
 
-            csprojOutStream.Flush();
-          }
+          await csprojOutStream.WriteAsync(bytes, 0, bytes.Length);
+          await csprojOutStream.FlushAsync();
         }
 
         using Stream resultsOutStream = File.Create(Path.Combine(currentDirectory, "PackagesToUpdateResult.json"));
