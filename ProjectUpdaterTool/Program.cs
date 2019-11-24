@@ -55,19 +55,8 @@ namespace ProjectUpdaterTool
 
           results.Add(result);
 
-          if (isTestMode) continue;
-
-          using FileStream csprojOutStream = File.Create(csprojFilePath);
-
-          // BOM
-          csprojOutStream.WriteByte(0xEF);
-          csprojOutStream.WriteByte(0xBB);
-          csprojOutStream.WriteByte(0xBF);
-
-          byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
-
-          await csprojOutStream.WriteAsync(bytes, 0, bytes.Length);
-          await csprojOutStream.FlushAsync();
+          if (!isTestMode)
+            await saveCsprojContent(csprojContent, csprojFilePath);
         }
 
         using Stream resultsOutStream = File.Create(Path.Combine(currentDirectory, "PackagesToUpdateResult.json"));
@@ -99,6 +88,21 @@ namespace ProjectUpdaterTool
       }
 
       return packages;
+    }
+
+    private static async Task saveCsprojContent(string csprojContent, string csprojFilePath)
+    {
+      using FileStream csprojOutStream = File.Create(csprojFilePath);
+
+      // BOM
+      csprojOutStream.WriteByte(0xEF);
+      csprojOutStream.WriteByte(0xBB);
+      csprojOutStream.WriteByte(0xBF);
+
+      byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
+
+      await csprojOutStream.WriteAsync(bytes, 0, bytes.Length);
+      await csprojOutStream.FlushAsync();
     }
   }
 }
