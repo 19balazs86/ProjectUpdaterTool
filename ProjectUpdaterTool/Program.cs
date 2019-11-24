@@ -11,6 +11,8 @@ namespace ProjectUpdaterTool
 {
   public class Program
   {
+    private static readonly Regex _dotnetOutdatedRegex = new Regex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)");
+
     public static async Task Main(string[] args)
     {
       bool isTestMode = args.Contains("-test");
@@ -19,8 +21,7 @@ namespace ProjectUpdaterTool
       {
         string currentDirectory = Directory.GetCurrentDirectory();
 
-        IEnumerable<Package> packagesToUpdate = JsonSerializer.Deserialize<IEnumerable<Package>>(
-          File.ReadAllText(Path.Combine(currentDirectory, "PackagesToUpdate.json")));
+        IEnumerable<Package> packagesToUpdate = await getPackages(currentDirectory);
 
         string[] csprojFiles = Directory.GetFiles(currentDirectory, "*.csproj", SearchOption.AllDirectories);
 
@@ -77,6 +78,27 @@ namespace ProjectUpdaterTool
       {
         Console.Error.WriteLine(ex.ToString());
       }
+    }
+
+    private static async Task<IEnumerable<Package>> getPackages(string currentDirectory)
+    {
+      List<Package> packages = new List<Package>();
+
+      string input = await File.ReadAllTextAsync(Path.Combine(currentDirectory, "PackagesToUpdate.txt"));
+
+      foreach (Match match in _dotnetOutdatedRegex.Matches(input))
+      {
+        var package = new Package
+        {
+          PackageName = match.Groups[1].Value,
+          VersionOld  = match.Groups[2].Value,
+          VersionNew  = match.Groups[3].Value
+        };
+
+        packages.Add(package);
+      }
+
+      return packages;
     }
   }
 }
