@@ -2,7 +2,7 @@
 {
     public static class BinObjFolderCleaner
     {
-        public static void CleanBinObjFolders()
+        public static void Clean_Bin_Obj_vs_Folders()
         {
             string currentDirectory = Directory.GetCurrentDirectory();
 
@@ -18,6 +18,13 @@
             Console.WriteLine($"Deleting {binFolders.Length} of 'obj' folders.");
 
             foreach (string folderPath in objFolders)
+                Directory.Delete(folderPath, true);
+
+            string[] visualStudioFolders = Directory.GetDirectories(currentDirectory, ".vs", SearchOption.AllDirectories);
+
+            Console.WriteLine($"Deleting {visualStudioFolders.Length} of '.vs' folders.");
+
+            foreach (string folderPath in visualStudioFolders)
                 Directory.Delete(folderPath, true);
         }
     }

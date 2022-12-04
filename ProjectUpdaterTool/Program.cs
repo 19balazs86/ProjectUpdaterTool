@@ -4,11 +4,11 @@
     {
         public static async Task Main(string[] args)
         {
-            bool isbinObjFolderCleaner = args.Contains("-BinObjFolderCleaner");
+            bool isbinObjFolderCleaner = args.Contains("-clean");
 
             if (isbinObjFolderCleaner)
             {
-                BinObjFolderCleaner.CleanBinObjFolders();
+                BinObjFolderCleaner.Clean_Bin_Obj_vs_Folders();
             }
             else
             {
