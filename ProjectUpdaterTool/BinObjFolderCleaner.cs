@@ -2,52 +2,42 @@
 {
     public static class BinObjFolderCleaner
     {
-        public static async Task Clean_Bin_Obj_vs_Folders()
+        public static void Clean_Bin_Obj_vs_Folders()
         {
             string currentDirectory = Directory.GetCurrentDirectory();
 
-            string[] binFolders = await getFolderFullPath(currentDirectory, "bin").ToArrayAsync();
+            var foldersToDelete = new Dictionary<string, List<string>>
+            {
+                ["bin"] = new List<string>(),
+                ["obj"] = new List<string>(),
+                [".vs"] = new List<string>()
+            };
 
-            Console.WriteLine($"Deleting {binFolders.Length} of 'bin' folders.");
+            findFoldersToDelete(currentDirectory, foldersToDelete);
 
-            foreach (string folderPath in binFolders)
-                Directory.Delete(folderPath, true);
+            foreach (var item in foldersToDelete)
+            {
+                Console.WriteLine($"Deleting {item.Value.Count} of '{item.Key}' folders.");
 
-            string[] objFolders = await getFolderFullPath(currentDirectory, "obj").ToArrayAsync();
-
-            Console.WriteLine($"Deleting {objFolders.Length} of 'obj' folders.");
-
-            foreach (string folderPath in objFolders)
-                Directory.Delete(folderPath, true);
-
-            string[] visualStudioFolders = await getFolderFullPath(currentDirectory, ".vs").ToArrayAsync();
-
-            Console.WriteLine($"Deleting {visualStudioFolders.Length} of '.vs' folders.");
-
-            foreach (string folderPath in visualStudioFolders)
-                Directory.Delete(folderPath, true);
+                foreach (string folderPath in item.Value)
+                    Directory.Delete(folderPath, true);
+            }
         }
 
-        private static async IAsyncEnumerable<string> getFolderFullPath(string rootFullPath, string folderName)
+        private static void findFoldersToDelete(string rootFullPath, Dictionary<string, List<string>> foldersToDelete)
         {
-            // 11 min video: https://youtu.be/qTetsXmZLk0
-            // You can use like this with System.Linq.Async
-            // await getFolderFullPath(currentDirectory, "bin").WhereAwait().Take(10).ToArrayAsync()
-
-            if (isFullPathEndsWith(rootFullPath, folderName))
+            foreach (var item in foldersToDelete)
             {
-                yield return rootFullPath;
-            }
-            else
-            {
-                foreach (string subFolderPath in Directory.GetDirectories(rootFullPath))
+                if (isFullPathEndsWith(rootFullPath, item.Key))
                 {
-                    // yield break;
+                    item.Value.Add(rootFullPath);
 
-                    await foreach (string innerFolderPath in getFolderFullPath(subFolderPath, folderName))
-                        yield return innerFolderPath;
+                    return;
                 }
             }
+
+            foreach (string subFolderPath in Directory.GetDirectories(rootFullPath))
+                findFoldersToDelete(subFolderPath, foldersToDelete);
         }
 
         private static bool isFullPathEndsWith(ReadOnlySpan<char> fullPath, string folderName)
