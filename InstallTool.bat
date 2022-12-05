@@ -2,4 +2,4 @@ dotnet pack -c Release
 
 dotnet tool uninstall --global ProjectUpdaterTool
 
-dotnet tool install --global --add-source ProjectUpdaterTool\bin\Release ProjectUpdaterTool --version 1.2.0
+dotnet tool install --global --add-source ProjectUpdaterTool\bin\Release ProjectUpdaterTool --version 1.3.0

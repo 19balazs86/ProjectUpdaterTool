@@ -8,7 +8,7 @@
 
             if (isbinObjFolderCleaner)
             {
-                BinObjFolderCleaner.Clean_Bin_Obj_vs_Folders();
+                await BinObjFolderCleaner.Clean_Bin_Obj_vs_Folders();
             }
             else
             {
