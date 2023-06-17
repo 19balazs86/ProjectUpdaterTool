@@ -1,18 +1,15 @@
-﻿using System.Collections.Generic;
+﻿namespace ProjectUpdaterTool;
 
-namespace ProjectUpdaterTool
+public sealed class Result
 {
-  public class Result
-  {
     public string CsprojFile { get; private set; }
 
     public List<string> Packages { get; private set; }
 
     public Result(string csprojFile)
     {
-      CsprojFile = csprojFile;
+        CsprojFile = csprojFile;
 
-      Packages = new List<string>();
+        Packages = new List<string>();
     }
-  }
 }
