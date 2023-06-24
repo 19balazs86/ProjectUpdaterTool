@@ -1,21 +1,20 @@
-﻿namespace ProjectUpdaterTool
+﻿namespace ProjectUpdaterTool;
+
+public static class Program
 {
-    public class Program
+    public static async Task Main(string[] args)
     {
-        public static async Task Main(string[] args)
+        bool isbinObjFolderCleaner = args.Contains("-clean");
+
+        if (isbinObjFolderCleaner)
         {
-            bool isbinObjFolderCleaner = args.Contains("-clean");
+            BinObjFolderCleaner.Clean_Bin_Obj_vs_Folders();
+        }
+        else
+        {
+            bool isTestMode = args.Contains("-test");
 
-            if (isbinObjFolderCleaner)
-            {
-                BinObjFolderCleaner.Clean_Bin_Obj_vs_Folders();
-            }
-            else
-            {
-                bool isTestMode = args.Contains("-test");
-
-                await PackageUpdater.Update(isTestMode);
-            }
+            await PackageUpdater.Update(isTestMode);
         }
     }
 }
