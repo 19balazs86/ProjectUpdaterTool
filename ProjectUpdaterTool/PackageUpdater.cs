@@ -82,9 +82,9 @@ public static class PackageUpdater
 
         foreach (Package package in _packagesToUpdate)
         {
-            // 1) Ignore the old version number
-            // 2) Include the 'Version', becasue referencing to the package in the csproj file from the Packages.props, does not need any version, so no need to override it
-            var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"[^\"]+\"");
+            //var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"[^\"]+\""); // Ignore old version
+
+            var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"{package.VersionOld}\"");
 
             if (regex.IsMatch(fileContent))
             {
