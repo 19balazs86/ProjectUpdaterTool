@@ -8,9 +8,9 @@ public static class BinObjFolderCleaner
 
         var foldersToDelete = new Dictionary<string, List<string>>
         {
-            ["bin"] = new List<string>(),
-            ["obj"] = new List<string>(),
-            [".vs"] = new List<string>()
+            ["bin"] = [],
+            ["obj"] = [],
+            [".vs"] = []
         };
 
         findFoldersToDelete(currentDirectory, foldersToDelete);
@@ -26,6 +26,11 @@ public static class BinObjFolderCleaner
 
     private static void findFoldersToDelete(string rootFullPath, Dictionary<string, List<string>> foldersToDelete)
     {
+        if (isFullPathEndsWith(rootFullPath, ".git"))
+        {
+            return;
+        }
+
         foreach (var item in foldersToDelete)
         {
             if (isFullPathEndsWith(rootFullPath, item.Key))
