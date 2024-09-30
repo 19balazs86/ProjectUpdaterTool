@@ -24,9 +24,9 @@ public static partial class PackageUpdater
 
             searchFiles(_rootFolder);
 
-            await workingOnCsprojFiles(isTestMode, _searchResults[0].Files);
+            await workingOnFiles_ReplacePackages(isTestMode, _searchResults[0].Files);
 
-            await workingOnPackagesPropsFiles(isTestMode, _searchResults[1].Files);
+            await workingOnFiles_ReplacePackages(isTestMode, _searchResults[1].Files);
 
             using Stream resultsOutStream = File.Create(Path.Combine(_rootFolder, "PackagesToUpdateResult.json"));
 
@@ -38,37 +38,18 @@ public static partial class PackageUpdater
         }
     }
 
-    private static async Task workingOnCsprojFiles(bool isTestMode, IEnumerable<string> csprojFiles)
+    private static async Task workingOnFiles_ReplacePackages(bool isTestMode, IEnumerable<string> files)
     {
-        // string[] csprojFiles = Directory.GetFiles(_rootFolder, "*.csproj", SearchOption.AllDirectories);
-
-        foreach (string csprojFilePath in csprojFiles)
+        foreach (string filePath in files)
         {
-            (UpdateResult result, string fileContent) = replacePackages(csprojFilePath, isTestMode);
+            (UpdateResult result, string fileContent) = replacePackages(filePath, isTestMode);
 
             if (result is null) continue;
 
             _results.Add(result);
 
             if (!isTestMode)
-                await saveCsprojContent(fileContent, csprojFilePath);
-        }
-    }
-
-    private static async Task workingOnPackagesPropsFiles(bool isTestMode, IEnumerable<string> packagesPropsFiles)
-    {
-        // string[] packagesPropsFiles = Directory.GetFiles(_rootFolder, "Directory.Packages.props", SearchOption.AllDirectories);
-
-        foreach (string propFilePath in packagesPropsFiles)
-        {
-            (UpdateResult result, string fileContent) = replacePackages(propFilePath, isTestMode);
-
-            if (result is null) continue;
-
-            _results.Add(result);
-
-            if (!isTestMode)
-                await File.WriteAllTextAsync(propFilePath, fileContent, Encoding.UTF8);
+                await File.WriteAllTextAsync(filePath, fileContent, Encoding.UTF8);
         }
     }
 
@@ -119,21 +100,6 @@ public static partial class PackageUpdater
         }
 
         return packages;
-    }
-
-    private static async Task saveCsprojContent(string csprojContent, string csprojFilePath)
-    {
-        using FileStream csprojOutStream = File.Create(csprojFilePath);
-
-        // BOM - Encoding.UTF8.GetPreamble()
-        csprojOutStream.WriteByte(0xEF);
-        csprojOutStream.WriteByte(0xBB);
-        csprojOutStream.WriteByte(0xBF);
-
-        byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
-
-        await csprojOutStream.WriteAsync(bytes);
-        await csprojOutStream.FlushAsync();
     }
 
     private static void searchFiles(string rootFolder)
