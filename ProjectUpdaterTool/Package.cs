@@ -2,7 +2,7 @@
 
 public sealed class Package
 {
-    public string PackageName { get; set; }
-    public string VersionOld { get; set; }
-    public string VersionNew { get; set; }
+    public required string PackageName { get; set; }
+    public required string VersionOld { get; set; }
+    public required string VersionNew { get; set; }
 }
