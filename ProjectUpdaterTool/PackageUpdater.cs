@@ -74,7 +74,7 @@ public static partial class PackageUpdater
 
     private static (UpdateResult result, string fileContent) replacePackages(string filePath, bool isTestMode)
     {
-        string fileContent = File.ReadAllText(filePath);
+        string fileContent = File.ReadAllText(filePath, Encoding.UTF8);
 
         UpdateResult result = null;
 
@@ -125,7 +125,7 @@ public static partial class PackageUpdater
     {
         using FileStream csprojOutStream = File.Create(csprojFilePath);
 
-        // BOM
+        // BOM - Encoding.UTF8.GetPreamble()
         csprojOutStream.WriteByte(0xEF);
         csprojOutStream.WriteByte(0xBB);
         csprojOutStream.WriteByte(0xBF);
@@ -138,13 +138,13 @@ public static partial class PackageUpdater
 
     private static void searchFiles(string rootFolder)
     {
-        Stack<string> directories = [];
+        Queue<string> directories = [];
 
-        directories.Push(rootFolder);
+        directories.Enqueue(rootFolder);
 
         while (directories.Count > 0)
         {
-            string currentFolder = directories.Pop();
+            string currentFolder = directories.Dequeue();
 
             foreach (SearchResult searchResult in _searchResults)
             {
@@ -155,12 +155,12 @@ public static partial class PackageUpdater
 
             foreach (string subFolder in Directory.GetDirectories(currentFolder))
             {
-                if (Array.Exists(_excludedFolders, excludedFolderName => isFullPathEndsWith(subFolder, excludedFolderName)))
+                if (_excludedFolders.Any(excludedFolderName => isFullPathEndsWith(subFolder, excludedFolderName)))
                 {
                     continue;
                 }
 
-                directories.Push(subFolder);
+                directories.Enqueue(subFolder);
             }
         }
     }
