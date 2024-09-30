@@ -26,14 +26,14 @@ public static class BinObjFolderCleaner
 
     private static void findFoldersToDelete(string rootFullPath, Dictionary<string, List<string>> foldersToDelete)
     {
-        if (isFullPathEndsWith(rootFullPath, ".git"))
+        if (rootFullPath.endsWith(".git"))
         {
             return;
         }
 
         foreach (var item in foldersToDelete)
         {
-            if (isFullPathEndsWith(rootFullPath, item.Key))
+            if (rootFullPath.endsWith(item.Key))
             {
                 item.Value.Add(rootFullPath);
 
@@ -45,8 +45,8 @@ public static class BinObjFolderCleaner
             findFoldersToDelete(subFolderPath, foldersToDelete);
     }
 
-    private static bool isFullPathEndsWith(ReadOnlySpan<char> fullPath, string folderName)
+    private static bool endsWith(this string folderFullPath, string folderName)
     {
-        return fullPath.EndsWith(Path.DirectorySeparatorChar + folderName);
+        return folderFullPath.EndsWith(Path.DirectorySeparatorChar + folderName);
     }
 }

@@ -4,21 +4,17 @@ using System.Text.RegularExpressions;
 
 namespace ProjectUpdaterTool;
 
-public static class PackageUpdater
+public static partial class PackageUpdater
 {
-    private static readonly Regex _dotnetOutdatedRegex;
-    private static readonly string _rootFolder;
-    private static readonly List<Result> _results;
+    private static readonly string[] _excludedFolders  = [".git", "bin", "obj", ".vs"];
+    private static readonly Regex _dotnetOutdatedRegex = getDotnetOutdatedRegex();
+    private static readonly string _rootFolder         = Directory.GetCurrentDirectory();
+
+    private static readonly List<SearchResult> _searchResults = [new SearchResult("*.csproj"), new SearchResult("Directory.Packages.props")];
+
+    private static readonly List<UpdateResult> _results = [];
+
     private static IEnumerable<Package> _packagesToUpdate;
-
-    static PackageUpdater()
-    {
-        _dotnetOutdatedRegex = new Regex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)");
-
-        _rootFolder = Directory.GetCurrentDirectory();
-
-        _results = new List<Result>();
-    }
 
     public static async Task Update(bool isTestMode)
     {
@@ -26,9 +22,11 @@ public static class PackageUpdater
         {
             _packagesToUpdate = await getPackagesToUpdate();
 
-            await workingOnCsprojFiles(isTestMode);
+            searchFiles(_rootFolder);
 
-            await workingOnPackagesPropsFiles(isTestMode);
+            await workingOnCsprojFiles(isTestMode, _searchResults[0].Files);
+
+            await workingOnPackagesPropsFiles(isTestMode, _searchResults[1].Files);
 
             using Stream resultsOutStream = File.Create(Path.Combine(_rootFolder, "PackagesToUpdateResult.json"));
 
@@ -40,13 +38,13 @@ public static class PackageUpdater
         }
     }
 
-    private static async Task workingOnCsprojFiles(bool isTestMode)
+    private static async Task workingOnCsprojFiles(bool isTestMode, IEnumerable<string> csprojFiles)
     {
-        string[] csprojFiles = Directory.GetFiles(_rootFolder, "*.csproj", SearchOption.AllDirectories);
+        // string[] csprojFiles = Directory.GetFiles(_rootFolder, "*.csproj", SearchOption.AllDirectories);
 
         foreach (string csprojFilePath in csprojFiles)
         {
-            (Result result, string fileContent) = replacePackages(csprojFilePath, isTestMode);
+            (UpdateResult result, string fileContent) = replacePackages(csprojFilePath, isTestMode);
 
             if (result is null) continue;
 
@@ -57,13 +55,13 @@ public static class PackageUpdater
         }
     }
 
-    private static async Task workingOnPackagesPropsFiles(bool isTestMode)
+    private static async Task workingOnPackagesPropsFiles(bool isTestMode, IEnumerable<string> packagesPropsFiles)
     {
-        string[] packagesPropsFiles = Directory.GetFiles(_rootFolder, "Directory.Packages.props", SearchOption.AllDirectories);
+        // string[] packagesPropsFiles = Directory.GetFiles(_rootFolder, "Directory.Packages.props", SearchOption.AllDirectories);
 
         foreach (string propFilePath in packagesPropsFiles)
         {
-            (Result result, string fileContent) = replacePackages(propFilePath, isTestMode);
+            (UpdateResult result, string fileContent) = replacePackages(propFilePath, isTestMode);
 
             if (result is null) continue;
 
@@ -74,11 +72,11 @@ public static class PackageUpdater
         }
     }
 
-    private static (Result result, string fileContent) replacePackages(string filePath, bool isTestMode)
+    private static (UpdateResult result, string fileContent) replacePackages(string filePath, bool isTestMode)
     {
         string fileContent = File.ReadAllText(filePath);
 
-        Result result = null;
+        UpdateResult result = null;
 
         foreach (Package package in _packagesToUpdate)
         {
@@ -88,7 +86,7 @@ public static class PackageUpdater
 
             if (regex.IsMatch(fileContent))
             {
-                result ??= new Result(filePath.Replace(_rootFolder, string.Empty));
+                result ??= new UpdateResult(filePath.Replace(_rootFolder, string.Empty));
 
                 result.Packages.Add(package.PackageName);
 
@@ -134,7 +132,44 @@ public static class PackageUpdater
 
         byte[] bytes = Encoding.UTF8.GetBytes(csprojContent);
 
-        await csprojOutStream.WriteAsync(bytes, 0, bytes.Length);
+        await csprojOutStream.WriteAsync(bytes);
         await csprojOutStream.FlushAsync();
     }
+
+    private static void searchFiles(string rootFolder)
+    {
+        Stack<string> directories = [];
+
+        directories.Push(rootFolder);
+
+        while (directories.Count > 0)
+        {
+            string currentFolder = directories.Pop();
+
+            foreach (SearchResult searchResult in _searchResults)
+            {
+                string[] desiredFiles = Directory.GetFiles(currentFolder, searchResult.SearchPattern);
+
+                searchResult.Files.AddRange(desiredFiles);
+            }
+
+            foreach (string subFolder in Directory.GetDirectories(currentFolder))
+            {
+                if (Array.Exists(_excludedFolders, excludedFolderName => isFullPathEndsWith(subFolder, excludedFolderName)))
+                {
+                    continue;
+                }
+
+                directories.Push(subFolder);
+            }
+        }
+    }
+
+    private static bool isFullPathEndsWith(this ReadOnlySpan<char> folderFullPath, string folderName)
+    {
+        return folderFullPath.EndsWith(Path.DirectorySeparatorChar + folderName);
+    }
+
+    [GeneratedRegex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)")]
+    private static partial Regex getDotnetOutdatedRegex();
 }

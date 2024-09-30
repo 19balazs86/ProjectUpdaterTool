@@ -5,7 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.6.3</Version>
+    <Version>1.6.4</Version>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ProjectUpdater</ToolCommandName>
