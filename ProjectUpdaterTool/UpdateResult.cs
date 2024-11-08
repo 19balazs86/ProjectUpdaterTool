@@ -1,25 +1,15 @@
 ﻿namespace ProjectUpdaterTool;
 
-public sealed class UpdateResult
+public sealed class UpdateResult(string _csprojFile)
 {
-    public string CsprojFile { get; private set; }
+    public string CsprojFile { get; private set; } = _csprojFile;
 
     public List<string> Packages { get; } = [];
-
-    public UpdateResult(string csprojFile)
-    {
-        CsprojFile = csprojFile;
-    }
 }
 
-public sealed class SearchResult
+public sealed class SearchResult(string _searchPattern)
 {
-    public string SearchPattern { get; private set; }
+    public string SearchPattern { get; private set; } = _searchPattern;
 
     public List<string> Files { get; } = [];
-
-    public SearchResult(string searchPattern)
-    {
-        SearchPattern = searchPattern;
-    }
 }

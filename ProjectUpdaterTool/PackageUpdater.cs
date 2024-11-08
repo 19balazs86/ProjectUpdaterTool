@@ -6,13 +6,10 @@ namespace ProjectUpdaterTool;
 
 public static partial class PackageUpdater
 {
-    private static readonly string _rootFolder = Directory.GetCurrentDirectory();
-
-    private static readonly List<SearchResult> _searchResults = [new SearchResult("*.csproj"), new SearchResult("Directory.Packages.props")];
-
-    private static readonly List<UpdateResult> _results = [];
-
-    private static readonly List<Package> _packagesToUpdate = [];
+    private static readonly string             _rootFolder       = Directory.GetCurrentDirectory();
+    private static readonly List<SearchResult> _searchResults    = [new("*.csproj"), new("Directory.Packages.props")];
+    private static readonly List<UpdateResult> _results          = [];
+    private static readonly List<Package>      _packagesToUpdate = [];
 
     public static async Task Update(bool isTestMode)
     {
@@ -26,13 +23,13 @@ public static partial class PackageUpdater
 
             await workingOnFiles_ReplacePackages(isTestMode, _searchResults[1].Files);
 
-            using Stream resultJsonStream = File.Create(Path.Combine(_rootFolder, "PackagesToUpdateResult.json"));
+            await using Stream resultJsonStream = File.Create(Path.Combine(_rootFolder, "PackagesToUpdateResult.json"));
 
             await JsonSerializer.SerializeAsync(resultJsonStream, _results, new JsonSerializerOptions { WriteIndented = true });
         }
         catch (Exception ex)
         {
-            Console.Error.WriteLine(ex.ToString());
+            await Console.Error.WriteLineAsync(ex.ToString());
         }
     }
 
@@ -42,12 +39,17 @@ public static partial class PackageUpdater
         {
             (UpdateResult result, string fileContent) = replacePackages(filePath, isTestMode);
 
-            if (result is null) continue;
+            if (result is null)
+            {
+                continue;
+            }
 
             _results.Add(result);
 
             if (!isTestMode)
+            {
                 await File.WriteAllTextAsync(filePath, fileContent, Encoding.UTF8);
+            }
         }
     }
 
@@ -59,22 +61,24 @@ public static partial class PackageUpdater
 
         foreach (Package package in _packagesToUpdate)
         {
-            //var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"[^\"]+\""); // Ignore old version
+            //var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"[^\"]+\"");
 
             var regex = new Regex($"Include=\"{package.PackageName}\" Version=\"{package.VersionOld}\"");
 
-            if (regex.IsMatch(fileContent))
+            if (!regex.IsMatch(fileContent))
             {
-                result ??= new UpdateResult(filePath.Replace(_rootFolder, string.Empty));
+                continue;
+            }
 
-                result.Packages.Add(package.PackageName);
+            result ??= new UpdateResult(filePath.Replace(_rootFolder, string.Empty));
 
-                string withNewVersion = $"Include=\"{package.PackageName}\" Version=\"{package.VersionNew}\"";
+            result.Packages.Add(package.PackageName);
 
-                if (!isTestMode)
-                {
-                    fileContent = regex.Replace(fileContent, withNewVersion);
-                }
+            string withNewVersion = $"Include=\"{package.PackageName}\" Version=\"{package.VersionNew}\"";
+
+            if (!isTestMode)
+            {
+                fileContent = regex.Replace(fileContent, withNewVersion);
             }
         }
 
@@ -83,7 +87,14 @@ public static partial class PackageUpdater
 
     private static async Task readPackagesToUpdate()
     {
-        string input = await File.ReadAllTextAsync(Path.Combine(_rootFolder, "PackagesToUpdate.txt"));
+        string packagesFilePath = Path.Combine(_rootFolder, "PackagesToUpdate.txt");
+
+        if (!File.Exists(packagesFilePath))
+        {
+            throw new FileNotFoundException($"The package file was not found at '{packagesFilePath}'");
+        }
+
+        string input = await File.ReadAllTextAsync(packagesFilePath);
 
         Regex regex = getDotnetOutdatedRegex();
 
@@ -102,7 +113,7 @@ public static partial class PackageUpdater
 
     private static void searchFiles()
     {
-        string[] excludedFolders  = [".git", "bin", "obj", ".vs"];
+        string[] excludedFolders  = [".git", "bin", "obj", ".vs", ".idea"];
 
         Queue<string> directories = [];
 
@@ -131,9 +142,11 @@ public static partial class PackageUpdater
         }
     }
 
-    private static bool isFullPathEndsWith(this ReadOnlySpan<char> folderFullPath, string folderName)
+    private static bool isFullPathEndsWith(this ReadOnlySpan<char> folderFullPath, ReadOnlySpan<char> folderName)
     {
-        return folderFullPath.EndsWith(Path.DirectorySeparatorChar + folderName);
+        ReadOnlySpan<char> actualFolderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
+
+        return actualFolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase);
     }
 
     [GeneratedRegex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)")]
