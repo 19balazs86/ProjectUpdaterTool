@@ -26,27 +26,23 @@ public static class BinObjFolderCleaner
 
     private static void findFoldersToDelete(string rootFullPath, Dictionary<string, List<string>> foldersToDelete)
     {
-        if (rootFullPath.endsWith(".git"))
+        string actualFolderName = Path.GetFileName(rootFullPath); // For a full folder path, it retrieves only the folder name
+
+        if (".git" == actualFolderName) // Ignore the .git folder
         {
             return;
         }
 
-        foreach (var item in foldersToDelete)
+        if (foldersToDelete.TryGetValue(actualFolderName, out List<string> folderList))
         {
-            if (rootFullPath.endsWith(item.Key))
-            {
-                item.Value.Add(rootFullPath);
+            folderList.Add(rootFullPath);
 
-                return;
-            }
+            return;
         }
 
         foreach (string subFolderPath in Directory.GetDirectories(rootFullPath))
+        {
             findFoldersToDelete(subFolderPath, foldersToDelete);
-    }
-
-    private static bool endsWith(this string folderFullPath, string folderName)
-    {
-        return folderFullPath.EndsWith(Path.DirectorySeparatorChar + folderName);
+        }
     }
 }
