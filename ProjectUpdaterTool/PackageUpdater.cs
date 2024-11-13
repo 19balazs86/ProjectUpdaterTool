@@ -101,6 +101,7 @@ public static partial class PackageUpdater
 
         string input = await File.ReadAllTextAsync(packagesFilePath);
 
+        // NOTE: dotnet-outdated, when used with the --output flag, can generate a JSON report, which is easier to process than using regex
         Regex regex = getDotnetOutdatedRegex();
 
         foreach (Match match in regex.Matches(input))
