@@ -11,6 +11,11 @@ public static partial class PackageUpdater
     private static readonly List<UpdateResult> _results          = [];
     private static readonly List<Package>      _packagesToUpdate = [];
 
+    private static readonly HashSet<string> _excludedFolders = [".git", "bin", "obj", ".vs", ".idea"];
+
+    private static readonly HashSet<string>.AlternateLookup<ReadOnlySpan<char>> _excludedFoldersLookup =
+        _excludedFolders.GetAlternateLookup<ReadOnlySpan<char>>();
+
     public static async Task Update(bool isTestMode)
     {
         try
@@ -113,8 +118,6 @@ public static partial class PackageUpdater
 
     private static void searchFiles()
     {
-        string[] excludedFolders  = [".git", "bin", "obj", ".vs", ".idea"];
-
         Queue<string> directories = [];
 
         directories.Enqueue(_rootFolder);
@@ -132,23 +135,22 @@ public static partial class PackageUpdater
 
             foreach (string subFolder in Directory.GetDirectories(currentFolder))
             {
-                if (excludedFolders.Any(excludedFolderName => isFullPathEndsWith(subFolder, excludedFolderName)))
+                if (!isExcludedFolder(subFolder))
                 {
-                    continue;
+                    directories.Enqueue(subFolder);
                 }
-
-                directories.Enqueue(subFolder);
             }
         }
     }
 
-    private static bool isFullPathEndsWith(this ReadOnlySpan<char> folderFullPath, ReadOnlySpan<char> folderName)
+    private static bool isExcludedFolder(ReadOnlySpan<char> folderFullPath)
     {
-        ReadOnlySpan<char> actualFolderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
+        ReadOnlySpan<char> folderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
 
-        return actualFolderName.Equals(folderName, StringComparison.OrdinalIgnoreCase);
+        return _excludedFoldersLookup.Contains(folderName);
     }
 
     [GeneratedRegex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)")]
     private static partial Regex getDotnetOutdatedRegex();
+    // private static partial Regex _dotnetOutdatedRegex { get; } // Supported in .NET 9
 }

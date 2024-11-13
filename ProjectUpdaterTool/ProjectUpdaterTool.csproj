@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.6.9</Version>
+    <Version>1.10.0</Version>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ProjectUpdater</ToolCommandName>
