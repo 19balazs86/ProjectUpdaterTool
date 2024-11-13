@@ -5,7 +5,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>disable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.10.0</Version>
+    <Version>1.10.1</Version>
 
     <PackAsTool>true</PackAsTool>
     <ToolCommandName>ProjectUpdater</ToolCommandName>

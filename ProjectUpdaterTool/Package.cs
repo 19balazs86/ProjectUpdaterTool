@@ -1,8 +1,11 @@
-﻿namespace ProjectUpdaterTool;
+﻿using System.Diagnostics;
 
+namespace ProjectUpdaterTool;
+
+[DebuggerDisplay("{PackageName} | {VersionOld} -> {VersionNew}")]
 public sealed class Package
 {
-    public required string PackageName { get; set; }
-    public required string VersionOld { get; set; }
-    public required string VersionNew { get; set; }
+    public required string PackageName { get; init; }
+    public required string VersionOld { get; init; }
+    public required string VersionNew { get; init; }
 }

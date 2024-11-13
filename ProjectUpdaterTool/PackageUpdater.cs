@@ -151,7 +151,7 @@ public static partial class PackageUpdater
         return _excludedFoldersLookup.Contains(folderName);
     }
 
-    [GeneratedRegex(@"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)")]
+    [GeneratedRegex(@"(\S+)\s+(\S+)\s+->\s+(\S+)")] // Old: @"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)"
     private static partial Regex getDotnetOutdatedRegex();
     // private static partial Regex _dotnetOutdatedRegex { get; } // Supported in .NET 9
 }
