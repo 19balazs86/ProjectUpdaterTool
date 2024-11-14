@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Buffers;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -11,10 +12,8 @@ public static partial class PackageUpdater
     private static readonly List<UpdateResult> _results          = [];
     private static readonly List<Package>      _packagesToUpdate = [];
 
-    private static readonly HashSet<string> _excludedFolders = [".git", "bin", "obj", ".vs", ".idea"];
-
-    private static readonly HashSet<string>.AlternateLookup<ReadOnlySpan<char>> _excludedFoldersLookup =
-        _excludedFolders.GetAlternateLookup<ReadOnlySpan<char>>();
+    private static readonly SearchValues<string> _excludedFolders =
+        SearchValues.Create([".git", "bin", "obj", ".vs", ".idea"], StringComparison.OrdinalIgnoreCase);
 
     public static async Task Update(bool isTestMode)
     {
@@ -144,11 +143,11 @@ public static partial class PackageUpdater
         }
     }
 
-    private static bool isExcludedFolder(ReadOnlySpan<char> folderFullPath)
+    private static bool isExcludedFolder(string folderFullPath)
     {
-        ReadOnlySpan<char> folderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
+        string folderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
 
-        return _excludedFoldersLookup.Contains(folderName);
+        return _excludedFolders.Contains(folderName);
     }
 
     [GeneratedRegex(@"(\S+)\s+(\S+)\s+->\s+(\S+)")] // Old: @"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)"
