@@ -1,5 +1,4 @@
-﻿using System.Buffers;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -11,9 +10,6 @@ public static partial class PackageUpdater
     private static readonly List<SearchResult> _searchResults    = [new("*.csproj"), new("Directory.Packages.props")];
     private static readonly List<UpdateResult> _results          = [];
     private static readonly List<Package>      _packagesToUpdate = [];
-
-    private static readonly SearchValues<string> _excludedFolders =
-        SearchValues.Create([".git", "bin", "obj", ".vs", ".idea"], StringComparison.OrdinalIgnoreCase);
 
     public static async Task Update(bool isTestMode)
     {
@@ -143,11 +139,11 @@ public static partial class PackageUpdater
         }
     }
 
-    private static bool isExcludedFolder(string folderFullPath)
+    private static bool isExcludedFolder(ReadOnlySpan<char> folderFullPath)
     {
-        string folderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
+        ReadOnlySpan<char> folderName = Path.GetFileName(folderFullPath); // For a full folder path, it retrieves only the folder name
 
-        return _excludedFolders.Contains(folderName);
+        return folderName is ".git" or "bin" or "obj" or ".vs" or ".idea";
     }
 
     [GeneratedRegex(@"(\S+)\s+(\S+)\s+->\s+(\S+)")] // Old: @"([^\s]+)\s+([^\s]+)\s+->\s+([^\s]+)"

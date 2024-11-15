@@ -2,20 +2,24 @@
 
 public static class BinObjFolderCleaner
 {
+    private static readonly Dictionary<string, List<string>> _foldersToDelete = new()
+    {
+        ["bin"] = [],
+        ["obj"] = [],
+        [".vs"] = []
+    };
+
+    private static readonly Dictionary<string, List<string>>.AlternateLookup<ReadOnlySpan<char>> _alternateLookup =
+        _foldersToDelete.GetAlternateLookup<ReadOnlySpan<char>>();
+
+
     public static void Clean_Bin_Obj_vs_Folders()
     {
         string currentDirectory = Directory.GetCurrentDirectory();
 
-        var foldersToDelete = new Dictionary<string, List<string>>
-        {
-            ["bin"] = [],
-            ["obj"] = [],
-            [".vs"] = []
-        };
+        findFoldersToDelete(currentDirectory);
 
-        findFoldersToDelete(currentDirectory, foldersToDelete);
-
-        foreach (var item in foldersToDelete)
+        foreach (var item in _foldersToDelete)
         {
             Console.WriteLine($"Deleting {item.Value.Count} of '{item.Key}' folders.");
 
@@ -24,16 +28,16 @@ public static class BinObjFolderCleaner
         }
     }
 
-    private static void findFoldersToDelete(string rootFullPath, Dictionary<string, List<string>> foldersToDelete)
+    private static void findFoldersToDelete(string rootFullPath)
     {
-        string actualFolderName = Path.GetFileName(rootFullPath); // For a full folder path, it retrieves only the folder name
+        ReadOnlySpan<char> actualFolderName = Path.GetFileName(rootFullPath.AsSpan()); // For a full folder path, it retrieves only the folder name
 
-        if (".git" == actualFolderName) // Ignore the .git folder
+        if (actualFolderName is ".git") // Ignore the .git folder
         {
             return;
         }
 
-        if (foldersToDelete.TryGetValue(actualFolderName, out List<string> folderList))
+        if (_alternateLookup.TryGetValue(actualFolderName, out List<string> folderList))
         {
             folderList.Add(rootFullPath);
 
@@ -42,7 +46,7 @@ public static class BinObjFolderCleaner
 
         foreach (string subFolderPath in Directory.GetDirectories(rootFullPath))
         {
-            findFoldersToDelete(subFolderPath, foldersToDelete);
+            findFoldersToDelete(subFolderPath);
         }
     }
 }
